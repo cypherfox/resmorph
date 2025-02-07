@@ -6,23 +6,54 @@ package cmd
 
 import (
 	"fmt"
+	"net/http"
 
+	"github.com/cypherfox/resmorph/api/tracker"
+	//"github.com/cypherfox/snacks-manager/internal/backend"
+
+	"github.com/gorilla/mux"
 	"github.com/spf13/cobra"
 )
 
 // trackerCmd represents the tracker command
 var trackerCmd = &cobra.Command{
 	Use:   "tracker",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+	Short: "start the tracker service",
+	Long: `Start the tracker service to receive notifications about the existence and status of desired state resources.
+	    While primarily focussed on Kubernetes resources, in principle any resource definition in YAML or JSON format may be
+	    managed.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("tracker called")
+		serverAddr := "0.0.0.0:8080"
+
+		runListener(serverAddr)
 	},
+}
+
+func runListener(addr string) {
+
+	backend := backend.NewTrackerBackEnd()
+
+	strict := tracker.NewApiHandler(backend)
+
+	r := mux.NewRouter()
+
+	// get an `http.Handler` that we can use
+	h := oapi.HandlerFromMuxWithBaseURL(strict, r, "")
+
+	fmt.Printf("starting server and listening on port %s", addr)
+
+	s := &http.Server{
+		Handler: h,
+		Addr:    addr,
+	}
+
+	err := s.ListenAndServe()
+	fmt.Printf("\n ended server \n")
+	if err != nil {
+		if err != nil {
+			fmt.Printf("with error: %s", err.Error())
+		}
+	}
 }
 
 func init() {

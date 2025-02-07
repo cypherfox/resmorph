@@ -38,4 +38,4 @@ COPY --from=build /resmorph /resmorph
 EXPOSE 8080
 
 
-ENTRYPOINT ["/resmorph"]
+ENTRYPOINT ["/resmorph", "tracker"]
